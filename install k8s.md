@@ -24,6 +24,8 @@ https://github.com/kubernetes/ingress-nginx/blob/master/docs/deploy/baremetal.md
 
 https://metallb.universe.tf/installation/
 
+https://github.com/kubernetes-incubator/external-storage/tree/master/nfs
+
 ## install docker
 
     curl -fsSL https://get.docker.com -o get-docker.sh
@@ -32,14 +34,18 @@ https://metallb.universe.tf/installation/
 
 add blow content to file `/etc/docker/daemon.json`
 
-    {
-    "registry-mirrors": ["https://registry.docker-cn.com"]
-    }
+```
+{
+"registry-mirrors": ["https://registry.docker-cn.com"]
+}
+```
 
 reload daemon and restart docker service
 
-    sudo systemctl daemon-reload 
-    sudo service docker restart
+```
+sudo systemctl daemon-reload
+sudo service docker restart
+```
 
 ### move docker storage location
 
@@ -310,14 +316,52 @@ kubectl apply -f metallb-conf.yaml
 
 ## install ingress 
 
+download `mandatory.yaml` and `service-nodeport.yaml`
 ```
-wget https://raw.githubusercontent.com/kubernetes/ingress-nginx/nginx-0.24.1/deploy/mandatory.yaml
-kubectl apply -f mandatory.yaml
+wget https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/mandatory.yaml
+wget https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/provider/baremetal/service-nodeport.yaml
+
 ```
 
 change `spec.type` from `NodePort` to `LoadBalancer`
 
 ```
-kubectl edit svc ingress-nginx  -n ingress-nginx
+sed -i 's/NodePort/LoadBalancer/' service-nodeport.yaml
 ```
 
+apply `mandatory.yaml` and `service-nodeport.yaml`
+```
+kubectl apply -f mandatory.yaml
+kubectl apply -f service-nodeport.yaml
+```
+
+## deploy nfs
+
+create a namespace `nfs-provisioner`
+
+```
+kubectl create namespace nfs-provisioner
+```
+
+### deit and apply `NFS/kubernetes/deployment.yaml`
+
+update `spec.template.spec.containers.args` in deployment, replace example.com with what you want to fill.
+
+update `spec.template.spec.volumes.hostPath.path` in deployment, fill it as your storage path.
+
+apply file `NFS/kubernetes/deployment.yaml`
+
+```
+kubectl apply -f NFS/kubernetes/deployment.yaml -n nfs-provisioner
+```
+
+
+### edit and apply `NFS/kubernetes/rbac.yaml`
+
+update `subjects.namespace` in `ClusterRoleBinding` and `RoleBinding`, replace `default` with namespace `nfs-provisioner`
+
+apply file `NFS/kubernetes/rbac.yaml`
+
+```
+kubectl apply -f NFS/kubernetes/rbac.yaml
+```
