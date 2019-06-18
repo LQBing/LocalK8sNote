@@ -1,0 +1,95 @@
+kind: List
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: Namespace
+  metadata:
+    name: ss
+- apiVersion: apps/v1beta1
+  kind: Deployment
+  metadata:
+    namespace: ss
+    name: ss
+  spec:
+    replicas: 1
+    template:
+      metadata:
+        labels:
+          app: ss
+      spec:
+        containers:
+        - name: ss
+          image: shadowsocks/shadowsocks-libev
+          ports:
+          - name: ss
+            containerPort: 9771
+          env:
+          - name: PASSWORD
+            value: TTsPESJz7nISrOTZ
+          - name: SERVER_PORT
+            value: "9771"
+          - name: METHOD
+            value: chacha20-ietf-poly1305
+        - name: nginx
+          image: nginx
+          ports:
+          - name: nginx
+            containerPort: 80
+- kind: Service
+  apiVersion: v1
+  metadata:
+    namespace: ss
+    name: ss
+  spec:
+    type: LoadBalancer
+    ports:
+      - name: ss
+        protocol: TCP
+        port: 9771
+      - name: nginx
+        protocol: TCP
+        port: 80
+- kind: Service
+  apiVersion: v1
+  metadata:
+    namespace: ss
+    name: ss1
+  spec:
+    type: LoadBalancer
+    ports:
+      - name: ss
+        protocol: TCP
+        port: 9771
+      - name: nginx
+        protocol: TCP
+        port: 80
+
+- kind: Service
+  apiVersion: v1
+  metadata:
+    namespace: ss
+    name: ss2
+  spec:
+    type: LoadBalancer
+    ports:
+      - name: ss
+        protocol: TCP
+        port: 9771
+      - name: nginx
+        protocol: TCP
+        port: 80
+
+- kind: Service
+  apiVersion: v1
+  metadata:
+    namespace: ss
+    name: ss3
+  spec:
+    type: LoadBalancer
+    ports:
+      - name: ss
+        protocol: TCP
+        port: 9771
+      - name: nginx
+        protocol: TCP
+        port: 80

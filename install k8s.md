@@ -365,3 +365,58 @@ apply file `NFS/kubernetes/rbac.yaml`
 ```
 kubectl apply -f NFS/kubernetes/rbac.yaml
 ```
+
+## others
+
+### change node max-pods
+
+find config file to edit for change kubelet configs
+
+```
+systemctl cat kubelet
+```
+
+use `vim` to edit file `/etc/systemd/system/kubelet.service.d/10-kubeadm.conf`
+
+add `Environment="KUBELET_EXTRA_ARGS=--max-pods=220"` after line `Environment`
+
+reload daemon and restart kubelet for let kubelet new config effective
+
+```
+systemctl daemon-reload
+systemctl restart kubelet
+```
+
+## install helm
+
+```
+kubectl apply -f helm.yaml
+helm init --upgrade -i registry.cn-hangzhou.aliyuncs.com/google_containers/tiller:v2.13.1 --service-account tiller
+```
+
+## cert-manager
+
+### install
+
+```
+kubectl apply -f https://raw.githubusercontent.com/jetstack/cert-manager/release-0.6/deploy/manifests/00-crds.yaml
+kubectl create namespace cert-manager
+kubectl label namespace kube-system certmanager.k8s.io/disable-validation="true"
+helm install   --name cert-manager   --namespace cert-manager   --version v0.8.0   jetstack/cert-manager
+kubectl apply -f cert-manager.yaml
+```
+
+
+
+### delete cert-manager
+
+```
+helm del --purge cert-manager
+kubectl delete -n cert-manager -f https://raw.githubusercontent.com/jetstack/cert-manager/release-0.6/deploy/manifests/00-crds.yaml
+kubectl delete namespace cert-manager
+```
+
+### ref
+
+ref : https://docs.cert-manager.io/en/latest/getting-started/install/kubernetes.html
+

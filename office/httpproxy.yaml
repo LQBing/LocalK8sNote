@@ -1,0 +1,120 @@
+kind: List
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: Namespace
+  metadata:
+    name: httpproxy
+- apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    name: httpproxy
+    labels:
+      app: httpproxy
+    namespace: httpproxy
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        app: httpproxy
+    template:
+      metadata:
+        labels:
+          app: httpproxy
+      spec:
+        terminationGracePeriodSeconds: 60
+        containers:
+        - name: httpproxy
+          image: nginx
+          imagePullPolicy: IfNotPresent
+          # livenessProbe:
+          #   httpGet:
+          #     path: /healthz
+          #     port: 80
+          #     scheme: HTTP
+          #   initialDelaySeconds: 30
+          #   timeoutSeconds: 5
+          ports:
+          - containerPort: 80
+          volumeMounts:
+            - name: httpproxy
+              mountPath: /etc/nginx/conf.d/httpproxy.conf
+              subPath: httpproxy.conf
+          resources:
+            limits:
+              cpu: 10m
+              memory: 20Mi
+            requests:
+              cpu: 10m
+              memory: 20Mi
+        volumes:
+          - name: httpproxy
+            configMap:
+              name: httpproxy
+              items:
+                - key: httpproxy.conf
+                  path: httpproxy.conf
+
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    namespace: httpproxy
+    name: httpproxy
+  data:
+    httpproxy.conf: |
+      server {
+          listen 80;
+          server_name he.office.parcelfuture.com;
+          
+          location / {
+              proxy_pass http://192.168.2.212:8090;
+              proxy_redirect     off;
+              proxy_set_header   Host             $host;
+              proxy_set_header   X-Real-IP        $remote_addr;
+              proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+              proxy_next_upstream error timeout invalid_header http_500 http_502 http_503 http_504;
+              proxy_max_temp_file_size 0;
+              proxy_connect_timeout      90;
+              proxy_send_timeout         90;
+              proxy_read_timeout         90;
+              proxy_buffer_size          4k;
+              proxy_buffers              4 32k;
+              proxy_busy_buffers_size    64k;
+              proxy_temp_file_write_size 64k;
+          client_max_body_size		30m;
+        }
+      } 
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: httpproxy
+    namespace: httpproxy
+    labels:
+      app: httpproxy
+  spec:
+    ports:
+    - port: 80
+      targetPort: 80
+    selector:
+      app: httpproxy
+- apiVersion: extensions/v1beta1
+  kind: Ingress
+  metadata:
+    namespace: httpproxy
+    annotations:
+      certmanager.k8s.io/cluster-issuer: letsencrypt-prod
+      kubernetes.io/ingress.class: nginx
+    name: httpproxy
+  spec:
+    rules:
+      - host: he.office.parcelfuture.com
+        http:
+          paths:
+            - path: /
+              backend:
+                serviceName: httpproxy
+                servicePort: 80
+    tls:
+      - hosts:
+          - he.office.parcelfuture.com
+        secretName: he-office-parcelfuture-com
