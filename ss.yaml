@@ -5,13 +5,57 @@ items:
   kind: Namespace
   metadata:
     name: ss
+
+- apiVersion: apps/v1beta1
+  kind: Deployment
+  metadata:
+    namespace: ss
+    name: ss1
+  spec:
+    replicas: 2
+    template:
+      metadata:
+        labels:
+          app: ss1
+      spec:
+        containers:
+        - name: ss1
+          image: shadowsocks/shadowsocks-libev
+          ports:
+          - name: ss1
+            containerPort: 49341
+          command:
+            - ss-server 
+          args: [ "-s", "0.0.0.0", "-p", "49341", "-k", "DmLUvTcvOhHIJYx7", "-m", "chacha20-ietf-poly1305", "-t", "300"]
+        - name: nginx
+          image: nginx
+          ports:
+          - name: nginx
+            containerPort: 80
+- kind: Service
+  apiVersion: v1
+  metadata:
+    namespace: ss
+    name: ss1
+  spec:
+    type: LoadBalancer
+    selector:
+      app: ss1
+    ports:
+      - name: ss
+        protocol: TCP
+        port: 49341
+      - name: nginx
+        protocol: TCP
+        port: 80
+
 - apiVersion: apps/v1beta1
   kind: Deployment
   metadata:
     namespace: ss
     name: ss2
   spec:
-    replicas: 1
+    replicas: 2
     template:
       metadata:
         labels:
@@ -31,7 +75,6 @@ items:
           ports:
           - name: nginx
             containerPort: 80
-
 - kind: Service
   apiVersion: v1
   metadata:
