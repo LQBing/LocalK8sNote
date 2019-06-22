@@ -9,60 +9,28 @@ items:
   kind: Deployment
   metadata:
     namespace: ss
-    name: ss
+    name: ss2
   spec:
     replicas: 1
     template:
       metadata:
         labels:
-          app: ss
+          app: ss2
       spec:
         containers:
-        - name: ss
+        - name: ss2
           image: shadowsocks/shadowsocks-libev
           ports:
-          - name: ss
+          - name: ss2
             containerPort: 9771
-          env:
-          - name: PASSWORD
-            value: TTsPESJz7nISrOTZ
-          - name: SERVER_PORT
-            value: "9771"
-          - name: METHOD
-            value: chacha20-ietf-poly1305
+          command:
+            - ss-server 
+          args: [ "-s", "0.0.0.0", "-p", "9771", "-k", "TTsPESJz7nISrOTZ", "-m", "aes-256-cfb", "-t", "300"]
         - name: nginx
           image: nginx
           ports:
           - name: nginx
             containerPort: 80
-- kind: Service
-  apiVersion: v1
-  metadata:
-    namespace: ss
-    name: ss
-  spec:
-    type: LoadBalancer
-    ports:
-      - name: ss
-        protocol: TCP
-        port: 9771
-      - name: nginx
-        protocol: TCP
-        port: 80
-- kind: Service
-  apiVersion: v1
-  metadata:
-    namespace: ss
-    name: ss1
-  spec:
-    type: LoadBalancer
-    ports:
-      - name: ss
-        protocol: TCP
-        port: 9771
-      - name: nginx
-        protocol: TCP
-        port: 80
 
 - kind: Service
   apiVersion: v1
@@ -71,21 +39,8 @@ items:
     name: ss2
   spec:
     type: LoadBalancer
-    ports:
-      - name: ss
-        protocol: TCP
-        port: 9771
-      - name: nginx
-        protocol: TCP
-        port: 80
-
-- kind: Service
-  apiVersion: v1
-  metadata:
-    namespace: ss
-    name: ss3
-  spec:
-    type: LoadBalancer
+    selector:
+      app: ss2
     ports:
       - name: ss
         protocol: TCP
