@@ -106,3 +106,62 @@ items:
             backend:
               serviceName: registry
               servicePort: 5000
+
+- apiVersion: apps/v1beta1
+  kind: Deployment
+  metadata:
+    namespace: registry
+    name: registry-web
+  spec:
+    replicas: 1
+    template:
+      metadata:
+        labels:
+          app: registry-web
+      spec:
+        containers:
+        - name: registry-web
+          image: hyper/docker-registry-web
+          ports:
+          - containerPort: 8080
+          env:
+          - name: REGISTRY_URL
+            value: http://registry:5000/v2
+          - name: REGISTRY_NAME
+            value: reg.int.parcelfuture.com
+          # - name: REGISTRY_BASIC_AUTH
+          #   value: YWRtaW46Y2hhbmdlbWU=
+
+- kind: Service
+  apiVersion: v1
+  metadata:
+    namespace: registry
+    name: registry-web
+  spec:
+    ports:
+      - protocol: TCP
+        port: 8080
+    selector:
+      app: registry-web
+
+- apiVersion: extensions/v1beta1
+  kind: Ingress
+  metadata:
+    namespace: registry
+    name: registry-web
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      nginx.ingress.kubernetes.io/proxy-body-size: "2g"
+  spec:
+    tls:
+    - hosts:
+      - regweb.int.parcelfuture.com
+      secretName: intparcelfuturecom
+    rules:
+      - host: regweb.int.parcelfuture.com
+        http:
+          paths:
+          - path: /
+            backend:
+              serviceName: registry-web
+              servicePort: 8080
