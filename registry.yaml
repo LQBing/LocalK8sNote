@@ -1,167 +1,202 @@
 kind: List
 apiVersion: v1
 items:
-- apiVersion: v1
-  kind: Namespace
-  metadata:
-    name: registry
-- apiVersion: v1
-  kind: PersistentVolume
-  metadata:
-    name: registry
-    labels:
-      app: registry
-  spec:
-    capacity:
-      storage: 100Gi 
-    accessModes:
-      - ReadWriteMany
-    storageClassName: nfs
-    persistentVolumeReclaimPolicy: Retain
-    nfs:
-      path: /data1/registry
-      server: nfs.int.parcelfuture.com
-- apiVersion: v1
-  kind: PersistentVolumeClaim
-  metadata:
-    namespace: registry
-    name: registry
-    annotations:
-      volume.beta.kubernetes.io/storage-class: "nfs"
-  spec:
-    accessModes:
-    - ReadWriteMany
-    resources: 
-      requests:
-        storage: 100Gi
-    selector:
-      matchLabels:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: registry
+  - apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      name: registry
+      labels:
         app: registry
-- apiVersion: apps/v1beta1
-  kind: Deployment
-  metadata:
-    namespace: registry
-    name: registry
-  spec:
-    replicas: 1
-    template:
-      metadata:
-        labels:
+    spec:
+      capacity:
+        storage: 100Gi
+      accessModes:
+        - ReadWriteMany
+      storageClassName: nfs
+      persistentVolumeReclaimPolicy: Retain
+      nfs:
+        path: /data1/registry
+        server: nfs.int.parcelfuture.com
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      namespace: registry
+      name: registry
+      annotations:
+        volume.beta.kubernetes.io/storage-class: "nfs"
+    spec:
+      accessModes:
+        - ReadWriteMany
+      resources:
+        requests:
+          storage: 100Gi
+      selector:
+        matchLabels:
           app: registry
-      spec:
-        containers:
-        - name: registry
-          image: registry:2
-          ports:
-          - containerPort: 5000
-          volumeMounts:
-          - name: registry
-            mountPath: /var/lib/registry
-        volumes:
-        - name: registry
-          persistentVolumeClaim:
-            claimName: registry
-
-- kind: Service
-  apiVersion: v1
-  metadata:
-    namespace: registry
-    name: registry
-  spec:
-    ports:
-      - protocol: TCP
-        port: 5000
-    selector:
-      app: registry
-
-- apiVersion: v1
-  kind: Secret
-  metadata:
-    namespace: registry
-    name: intparcelfuturecom
-  data:
-    ca.crt: ""
-    tls.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUZlVENDQkdHZ0F3SUJBZ0lTQTR1ZVlZTmhGK3NubVp5YTVnNmlXckZTTUEwR0NTcUdTSWIzRFFFQkN3VUEKTUVveEN6QUpCZ05WQkFZVEFsVlRNUll3RkFZRFZRUUtFdzFNWlhRbmN5QkZibU55ZVhCME1TTXdJUVlEVlFRRApFeHBNWlhRbmN5QkZibU55ZVhCMElFRjFkR2h2Y21sMGVTQllNekFlRncweE9UQTFNamt3T1RReU16ZGFGdzB4Ck9UQTRNamN3T1RReU16ZGFNQ0V4SHpBZEJnTlZCQU1NRmlvdWFXNTBMbkJoY21ObGJHWjFkSFZ5WlM1amIyMHcKZ2dFaU1BMEdDU3FHU0liM0RRRUJBUVVBQTRJQkR3QXdnZ0VLQW9JQkFRQy9rUjJBZDg0dmdlTXp2L1YzK2pYTgpNYUsvbzlPZFBVTzdnZDRyajJKbFZkU0ZpMGg5NHBMZGRtZDUwT0xTRmw1UThsNFByZjZqOFlldEFENVVDTzErCm9OVGljUmFpeGxmZ21CL0dSL1c1dWNiY3RaWGVyMjFMZ0RUdlBHMUJ5TUVWYTZwM2xGbDFtR1RLcjNDQjRuZlkKbW81TFptK00rcDZ4akhLcWZaTlJVLzl6SGVQZFlwVGhTb1gyRE41cW1xMk80STNLYWt5ZXk1TkwxY3Q4MUhHTwpHQ0p1S1dpZE12Sjk0T3R3MTMyMTZMaEY2RkhPTE96alpDaVVUR3p1MHVpWktHNWR4SkpyZmhaTm80US9TWE9XCjZMNGlzTTdRcVM5RE5KeEQvQTJqSGVhYzF2a0s0M1JsQzhvVmFadUhVV3R3OTBDbnVIejYydWl6dENZYnI3Si8KQWdNQkFBR2pnZ0tBTUlJQ2ZEQU9CZ05WSFE4QkFmOEVCQU1DQmFBd0hRWURWUjBsQkJZd0ZBWUlLd1lCQlFVSApBd0VHQ0NzR0FRVUZCd01DTUF3R0ExVWRFd0VCL3dRQ01BQXdIUVlEVlIwT0JCWUVGTk1PQVpIQnlTT29teXRYCkVRRGhyMjdPSEJrcU1COEdBMVVkSXdRWU1CYUFGS2hLYW1NRWZkMjY1dEU1dDZaRlplL3pxT3loTUc4R0NDc0cKQVFVRkJ3RUJCR013WVRBdUJnZ3JCZ0VGQlFjd0FZWWlhSFIwY0RvdkwyOWpjM0F1YVc1MExYZ3pMbXhsZEhObApibU55ZVhCMExtOXlaekF2QmdnckJnRUZCUWN3QW9ZamFIUjBjRG92TDJObGNuUXVhVzUwTFhnekxteGxkSE5sCmJtTnllWEIwTG05eVp5OHdOd1lEVlIwUkJEQXdMb0lXS2k1cGJuUXVjR0Z5WTJWc1puVjBkWEpsTG1OdmJZSVUKYVc1MExuQmhjbU5sYkdaMWRIVnlaUzVqYjIwd1RBWURWUjBnQkVVd1F6QUlCZ1puZ1F3QkFnRXdOd1lMS3dZQgpCQUdDM3hNQkFRRXdLREFtQmdnckJnRUZCUWNDQVJZYWFIUjBjRG92TDJOd2N5NXNaWFJ6Wlc1amNubHdkQzV2CmNtY3dnZ0VEQmdvckJnRUVBZFo1QWdRQ0JJSDBCSUh4QU84QWRnRGlhVXV1SnVqcFFBbm9oaHUyTzRQVVB1ZisKZElqN3BJOG9rd0dkM2ZIYi9nQUFBV3NETDBMVkFBQUVBd0JITUVVQ0lFRHpHWG9GMkVuV250T0RUTGszTjBYbQpIb0hZRlFrVVJpaCtTbTc1cFpsWkFpRUFocUQxUGpkWG9lQnp0elhoTVZPOENwYWoyeThSWHlQV2llK3VMR0NQClFXY0FkUUFwUEZHV1ZNZzVaYnFxVVB4WUI5UzNiNzlZZWlseTNLVEREUFRsUlVmMGVBQUFBV3NETDBMMkFBQUUKQXdCR01FUUNJSDZTak1mVXFabnZYWGVLTHJXdGVjUFRkRzZ3aWhXVkpkd0MxV3JLNVdhQkFpQlJZNTlrZkErZgpabCsvTVF6M1VkSHFPcGp6am12Mlc3WFNVcHo5SE1JZFpEQU5CZ2txaGtpRzl3MEJBUXNGQUFPQ0FRRUFMZzFrCktLSlRNdnJmZ1FYck4yVzFXelNjS1Bwck1KUk1NdFJTTUlMTHFiczRpT25Nd0M2TGpDYWJEUlpDTDFzdEZLL0kKRU5WdVMrWFVBU2tQZG1FSUZzeElGd0FYZUdmRWRVOTYwc1Y0cU9UNE9GTWg0dXY5QSsyVUNhWjBxYTUvVFZkRgpWWWRYaWN1VmpBQ3JMeDl2UGxsNkFpVUZVNll3WE04ZFJ6bDNKcWwwcXI4WTFsZmNROWpaVVJUYkh6REtFNVErCk9HcXVhd25QNlV2eG84ZFIvV0I3QWM2VjBtMmxCTzltUTYxRlBNMDNLT1RINi9ZelhJVnlvcUtmekptK01BVWEKZ2JvZjE0OUYvOE9TZFh0a2w4alR4NjQrYXFaUTBNc0N1MzBrQWFGelZRTVV1MHI5Z1hncjU1cy9DVlZvaG1FQgoxNjNySkNTVkhCRFRacUdmb1E9PQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCgotLS0tLUJFR0lOIENFUlRJRklDQVRFLS0tLS0KTUlJRWtqQ0NBM3FnQXdJQkFnSVFDZ0ZCUWdBQUFWT0ZjMm9MaGV5bkNEQU5CZ2txaGtpRzl3MEJBUXNGQURBLwpNU1F3SWdZRFZRUUtFeHRFYVdkcGRHRnNJRk5wWjI1aGRIVnlaU0JVY25WemRDQkRieTR4RnpBVkJnTlZCQU1UCkRrUlRWQ0JTYjI5MElFTkJJRmd6TUI0WERURTJNRE14TnpFMk5EQTBObG9YRFRJeE1ETXhOekUyTkRBME5sb3cKU2pFTE1Ba0dBMVVFQmhNQ1ZWTXhGakFVQmdOVkJBb1REVXhsZENkeklFVnVZM0o1Y0hReEl6QWhCZ05WQkFNVApHa3hsZENkeklFVnVZM0o1Y0hRZ1FYVjBhRzl5YVhSNUlGZ3pNSUlCSWpBTkJna3Foa2lHOXcwQkFRRUZBQU9DCkFROEFNSUlCQ2dLQ0FRRUFuTk1NOEZybExrZTNjbDAzZzdOb1l6RHExelVtR1NYaHZiNDE4WENTTDdlNFMwRUYKcTZtZU5RaFk3TEVxeEdpSEM2UGpkZVRtODZkaWNicDVnV0FmMTVHYW4vUFFlR2R4eUdrT2xaSFAvdWFaNldBOApTTXgreWsxM0VpU2RSeHRhNjduc0hqY0FISnlzZTZjRjZzNUs2NzFCNVRhWXVjdjliVHlXYU44aktrS1FESVowClo4aC9wWnE0VW1FVUV6OWw2WUtIeTl2NkRsYjJob256aFQrWGhxK3czQnJ2YXcyVkZuM0VLNkJsc3BrRU5uV0EKYTZ4Szh4dVFTWGd2b3BaUEtpQWxLUVRHZE1EUU1jMlBNVGlWRnJxb003aEQ4YkVmd3pCL29ua3hFejB0TnZqagovUEl6YXJrNU1jV3Z4STBOSFdRV002cjZoQ20yMUF2QTJIM0Rrd0lEQVFBQm80SUJmVENDQVhrd0VnWURWUjBUCkFRSC9CQWd3QmdFQi93SUJBREFPQmdOVkhROEJBZjhFQkFNQ0FZWXdmd1lJS3dZQkJRVUhBUUVFY3pCeE1ESUcKQ0NzR0FRVUZCekFCaGlab2RIUndPaTh2YVhOeVp5NTBjblZ6ZEdsa0xtOWpjM0F1YVdSbGJuUnlkWE4wTG1OdgpiVEE3QmdnckJnRUZCUWN3QW9ZdmFIUjBjRG92TDJGd2NITXVhV1JsYm5SeWRYTjBMbU52YlM5eWIyOTBjeTlrCmMzUnliMjkwWTJGNE15NXdOMk13SHdZRFZSMGpCQmd3Rm9BVXhLZXhwSHNzY2ZyYjRVdVFkZi9FRldDRmlSQXcKVkFZRFZSMGdCRTB3U3pBSUJnWm5nUXdCQWdFd1B3WUxLd1lCQkFHQzN4TUJBUUV3TURBdUJnZ3JCZ0VGQlFjQwpBUllpYUhSMGNEb3ZMMk53Y3k1eWIyOTBMWGd4TG14bGRITmxibU55ZVhCMExtOXlaekE4QmdOVkhSOEVOVEF6Ck1ER2dMNkF0aGl0b2RIUndPaTh2WTNKc0xtbGtaVzUwY25WemRDNWpiMjB2UkZOVVVrOVBWRU5CV0RORFVrd3UKWTNKc01CMEdBMVVkRGdRV0JCU29TbXBqQkgzZHV1YlJPYmVtUldYdjg2anNvVEFOQmdrcWhraUc5dzBCQVFzRgpBQU9DQVFFQTNUUFhFZk5qV0RqZEdCWDdDVlcrZGxhNWNFaWxhVWNuZThJa0NKTHhXaDlLRWlrM0pIUlJIR0pvCnVNMlZjR2ZsOTZTOFRpaFJ6WnZvcm9lZDZ0aTZXcUVCbXR6dzNXb2RhdGcrVnlPZXBoNEVZcHIvMXdYS3R4OC8Kd0FwSXZKU3d0bVZpNE1GVTVhTXFyU0RFNmVhNzNNajJ0Y015bzVqTWQ2am1lV1VISzhzby9qb1dVb0hPVWd3dQpYNFBvMVFZeiszZHN6a0RxTXA0ZmtseEJ3WFJzVzEwS1h6UE1UWitzT1BBdmV5eGluZG1qa1c4bEd5K1FzUmxHClBmWitHNlo2aDdtamVtMFkraVdsa1ljVjRQSVdMMWl3Qmk4c2FDYkdTNWpOMnA4TStYK1E3VU5LRWtST2IzTjYKS09xa3FtNTdUSDJIM2VESkFrU25oNi9ETkZ1MFFnPT0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
-    tls.key: LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlFcFFJQkFBS0NBUUVBdjVFZGdIZk9MNEhqTTcvMWQvbzF6VEdpdjZQVG5UMUR1NEhlSzQ5aVpWWFVoWXRJCmZlS1MzWFpuZWREaTBoWmVVUEplRDYzK28vR0hyUUErVkFqdGZxRFU0bkVXb3NaWDRKZ2Z4a2YxdWJuRzNMV1YKM3E5dFM0QTA3enh0UWNqQkZXdXFkNVJaZFpoa3lxOXdnZUozMkpxT1MyWnZqUHFlc1l4eXFuMlRVVlAvY3gzagozV0tVNFVxRjlnemVhcHF0anVDTnltcE1uc3VUUzlYTGZOUnhqaGdpYmlsb25UTHlmZURyY05kOXRlaTRSZWhSCnppenM0MlFvbEV4czd0TG9tU2h1WGNTU2EzNFdUYU9FUDBsemx1aStJckRPMEtrdlF6U2NRL3dOb3gzbW5OYjUKQ3VOMFpRdktGV21iaDFGcmNQZEFwN2g4K3Ryb3M3UW1HNit5ZndJREFRQUJBb0lCQUJGUGFaME1ObU53bHprNwo1VkI4R1pSN0lidXpjQkhMVVcyR0pLOUcrNXN3a0Uybzhsbjl1VXV0d1ZmdW1qQmx1UXdUZXBCc0pwQmw2TjZuCklQcXkrOUx2Y1kwc3J1RHlqMHBLTk1UVUI4NUtqVCt3WU9TSWNaWGE5ZTJRUmtjbGZ0MFNwNHE2cXdMSFRJUk0KS2h4eWZHWGtRV3RxekRXdkI5di9WdlUwOTdUbmZDRlBlSm9xZWIxSGV1dkozYjNaVkZQZU1ZY293WE94YmZVNwoyTE5MczVKdUV5Z25lNFlxNkdnbzQxVGtBZWFNT3ZHbHNjaEpWMlpKekNIZks3S0VMYks3bGpkQnl5VS9ZTVBpCnR0MGw5eUIyUVhhbWtFQjBzU2JZS2cwNHAwNDZRaGl2NEx4RC9QTE9rb0lEYWNRNmZUT2gxMTYzbVZ2Qks4STAKbUd4cVYwRUNnWUVBNk5LZFhQMlp4QkowVGJSY09vdUFzdlFRRjJ2WVFEQS9uRmQwdktFQnVHU0FpVHd1dFlDaApsQlRRWVY2b1hmQ1pZLzJlc3pGWHNrVDQwVmdmSFhhSTBvb2t2aDE3TWw0dTZZM0tWNnZPcG1tMzJSYXN2MlY0CjVMbmNMN2JkdG05Y0hrSUhoUHRIUFF1VTd6SXRkUUJPVWVSWjlnT2VONGhHdG1UOGtPa0Y4UzhDZ1lFQTBxTWMKN28xWUZGZDVHTHMzQTluMFJxS296ZnFHOUtMOCtycmt2RDRia2J0MS9BR0pHOU9VU0pPMzhVK0N4OUhYTFBNWgpmTThFR2phZWF6aVRiMkxhZGVaL01lYUxKdHZWUlAxQmFNR2Nya3IxZ0hVN3N4L3VGUFA2RDNhYjhMWlRpUjBVCnV3bEVmdno1eCsyYy9mNlNURFUvV3dzMFNxbTNPNVhiTFE5RTM3RUNnWUVBcTh3VjBETlZqbWZycUJicFkwM2oKRnFtZlloanpCbEpUN2VKZXduMndEa2NpemFFNStqWkRoRWhqaHlYWTZSQ0xyMHZMR2dEVDdEaVd2YXJmc3RidgptU1BVZnZDMEluTjYvRjNqTEJRYnRaSVcxanEwRjdzaG5PMUVlM1RkWHl3RzlsRFV5Wnk5Y1Y4bGMrYzd3YlVMCkZjU0JXVlpNSGtBUnBhOFk2emozYUlNQ2dZRUFwRW1zeXpOYk82SnVSU2ZnWlJTZVBtbW9GK0FMV3N1MVhTcGcKTmFLTGhrTWNadzRianFTYngyL1B6RnNqdWc2bE1kMzZSeXFBSEtIMU5kUE95dFhqWm9uOU0wS0p6aWt3VXJybApSWHVkWlNQNkQ5TmdXUG5TakcwdTROaTJFQzFsUWxCNFZ0bUhuelJZN2VNYXk5Qys4c21sUExHa2U0ZWI3dEdYClBiSG5Ha0VDZ1lFQTB3Sm1KZ0VnRklYRDAvWFNvSzhiMktJam5oaVgzVGRHemJJOENWZW1zTVVrdGFkYSsydnkKdDlNS3dKMVpvWnBxK2QzT1c5Wm1JWGw3L1FjaFFUOEl2OW16UjJPcTFKYVdjczk5QmQ3VlBDeWVIOWlvUlRaNQpNUElaWTNCTnVoejBMbWVTU2doUm5iUGh5YzRucXUzdVAvSElMVjRmZlVNYjB6d3lwVWFoTlRZPQotLS0tLUVORCBSU0EgUFJJVkFURSBLRVktLS0tLQo=
-  type: kubernetes.io/tls
-
-- apiVersion: extensions/v1beta1
-  kind: Ingress
-  metadata:
-    namespace: registry
-    name: registry
-    annotations:
-      kubernetes.io/ingress.class: nginx
-      nginx.ingress.kubernetes.io/proxy-body-size: "2g"
-  spec:
-    tls:
-    - hosts:
-      - reg.int.parcelfuture.com
-      secretName: intparcelfuturecom
-    rules:
-      - host: reg.int.parcelfuture.com
+  - apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      namespace: registry
+      name: registryconfig
+    data:
+      config.yml: |
+        version: 0.1
+        log:
+          fields:
+            service: registry
+        storage:
+          cache:
+            blobdescriptor: inmemory
+          filesystem:
+            rootdirectory: /var/lib/registry
+          delete:
+            enable: treu
         http:
-          paths:
-          - path: /
-            backend:
-              serviceName: registry
-              servicePort: 5000
+          addr: :5000
+          headers:
+            X-Content-Type-Options: [nosniff]
+        health:
+          storagedriver:
+            enabled: true
+            interval: 10s
+            threshold: 3
+  - apiVersion: apps/v1beta1
+    kind: Deployment
+    metadata:
+      namespace: registry
+      name: registry
+    spec:
+      replicas: 1
+      template:
+        metadata:
+          labels:
+            app: registry
+        spec:
+          containers:
+            - name: registry
+              image: registry:2
+              ports:
+                - containerPort: 5000
+              volumeMounts:
+                - name: registry
+                  mountPath: /var/lib/registry
+                - name: registryconfig
+                  mountPath: /etc/docker/registry/config.yml
+                  subPath: config.yml
+          volumes:
+            - name: registry
+              persistentVolumeClaim:
+                claimName: registry
+            - name: registryconfig
+              configMap:
+                name: registryconfig
+                items:
+                  - key: config.yml
+                    path: config.yml
+  - kind: Service
+    apiVersion: v1
+    metadata:
+      namespace: registry
+      name: registry
+    spec:
+      ports:
+        - protocol: TCP
+          port: 5000
+      selector:
+        app: registry
 
-- apiVersion: apps/v1beta1
-  kind: Deployment
-  metadata:
-    namespace: registry
-    name: registry-web
-  spec:
-    replicas: 1
-    template:
-      metadata:
-        labels:
-          app: registry-web
-      spec:
-        containers:
-        - name: registry-web
-          image: hyper/docker-registry-web
-          ports:
-          - containerPort: 8080
-          env:
-          - name: REGISTRY_URL
-            value: http://registry:5000/v2
-          - name: REGISTRY_NAME
-            value: reg.int.parcelfuture.com
-          # - name: REGISTRY_BASIC_AUTH
-          #   value: YWRtaW46Y2hhbmdlbWU=
+  - apiVersion: v1
+    kind: Secret
+    metadata:
+      namespace: registry
+      name: intparcelfuturecom
+    data:
+      ca.crt: ""
+      tls.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUZlVENDQkdHZ0F3SUJBZ0lTQTR1ZVlZTmhGK3NubVp5YTVnNmlXckZTTUEwR0NTcUdTSWIzRFFFQkN3VUEKTUVveEN6QUpCZ05WQkFZVEFsVlRNUll3RkFZRFZRUUtFdzFNWlhRbmN5QkZibU55ZVhCME1TTXdJUVlEVlFRRApFeHBNWlhRbmN5QkZibU55ZVhCMElFRjFkR2h2Y21sMGVTQllNekFlRncweE9UQTFNamt3T1RReU16ZGFGdzB4Ck9UQTRNamN3T1RReU16ZGFNQ0V4SHpBZEJnTlZCQU1NRmlvdWFXNTBMbkJoY21ObGJHWjFkSFZ5WlM1amIyMHcKZ2dFaU1BMEdDU3FHU0liM0RRRUJBUVVBQTRJQkR3QXdnZ0VLQW9JQkFRQy9rUjJBZDg0dmdlTXp2L1YzK2pYTgpNYUsvbzlPZFBVTzdnZDRyajJKbFZkU0ZpMGg5NHBMZGRtZDUwT0xTRmw1UThsNFByZjZqOFlldEFENVVDTzErCm9OVGljUmFpeGxmZ21CL0dSL1c1dWNiY3RaWGVyMjFMZ0RUdlBHMUJ5TUVWYTZwM2xGbDFtR1RLcjNDQjRuZlkKbW81TFptK00rcDZ4akhLcWZaTlJVLzl6SGVQZFlwVGhTb1gyRE41cW1xMk80STNLYWt5ZXk1TkwxY3Q4MUhHTwpHQ0p1S1dpZE12Sjk0T3R3MTMyMTZMaEY2RkhPTE96alpDaVVUR3p1MHVpWktHNWR4SkpyZmhaTm80US9TWE9XCjZMNGlzTTdRcVM5RE5KeEQvQTJqSGVhYzF2a0s0M1JsQzhvVmFadUhVV3R3OTBDbnVIejYydWl6dENZYnI3Si8KQWdNQkFBR2pnZ0tBTUlJQ2ZEQU9CZ05WSFE4QkFmOEVCQU1DQmFBd0hRWURWUjBsQkJZd0ZBWUlLd1lCQlFVSApBd0VHQ0NzR0FRVUZCd01DTUF3R0ExVWRFd0VCL3dRQ01BQXdIUVlEVlIwT0JCWUVGTk1PQVpIQnlTT29teXRYCkVRRGhyMjdPSEJrcU1COEdBMVVkSXdRWU1CYUFGS2hLYW1NRWZkMjY1dEU1dDZaRlplL3pxT3loTUc4R0NDc0cKQVFVRkJ3RUJCR013WVRBdUJnZ3JCZ0VGQlFjd0FZWWlhSFIwY0RvdkwyOWpjM0F1YVc1MExYZ3pMbXhsZEhObApibU55ZVhCMExtOXlaekF2QmdnckJnRUZCUWN3QW9ZamFIUjBjRG92TDJObGNuUXVhVzUwTFhnekxteGxkSE5sCmJtTnllWEIwTG05eVp5OHdOd1lEVlIwUkJEQXdMb0lXS2k1cGJuUXVjR0Z5WTJWc1puVjBkWEpsTG1OdmJZSVUKYVc1MExuQmhjbU5sYkdaMWRIVnlaUzVqYjIwd1RBWURWUjBnQkVVd1F6QUlCZ1puZ1F3QkFnRXdOd1lMS3dZQgpCQUdDM3hNQkFRRXdLREFtQmdnckJnRUZCUWNDQVJZYWFIUjBjRG92TDJOd2N5NXNaWFJ6Wlc1amNubHdkQzV2CmNtY3dnZ0VEQmdvckJnRUVBZFo1QWdRQ0JJSDBCSUh4QU84QWRnRGlhVXV1SnVqcFFBbm9oaHUyTzRQVVB1ZisKZElqN3BJOG9rd0dkM2ZIYi9nQUFBV3NETDBMVkFBQUVBd0JITUVVQ0lFRHpHWG9GMkVuV250T0RUTGszTjBYbQpIb0hZRlFrVVJpaCtTbTc1cFpsWkFpRUFocUQxUGpkWG9lQnp0elhoTVZPOENwYWoyeThSWHlQV2llK3VMR0NQClFXY0FkUUFwUEZHV1ZNZzVaYnFxVVB4WUI5UzNiNzlZZWlseTNLVEREUFRsUlVmMGVBQUFBV3NETDBMMkFBQUUKQXdCR01FUUNJSDZTak1mVXFabnZYWGVLTHJXdGVjUFRkRzZ3aWhXVkpkd0MxV3JLNVdhQkFpQlJZNTlrZkErZgpabCsvTVF6M1VkSHFPcGp6am12Mlc3WFNVcHo5SE1JZFpEQU5CZ2txaGtpRzl3MEJBUXNGQUFPQ0FRRUFMZzFrCktLSlRNdnJmZ1FYck4yVzFXelNjS1Bwck1KUk1NdFJTTUlMTHFiczRpT25Nd0M2TGpDYWJEUlpDTDFzdEZLL0kKRU5WdVMrWFVBU2tQZG1FSUZzeElGd0FYZUdmRWRVOTYwc1Y0cU9UNE9GTWg0dXY5QSsyVUNhWjBxYTUvVFZkRgpWWWRYaWN1VmpBQ3JMeDl2UGxsNkFpVUZVNll3WE04ZFJ6bDNKcWwwcXI4WTFsZmNROWpaVVJUYkh6REtFNVErCk9HcXVhd25QNlV2eG84ZFIvV0I3QWM2VjBtMmxCTzltUTYxRlBNMDNLT1RINi9ZelhJVnlvcUtmekptK01BVWEKZ2JvZjE0OUYvOE9TZFh0a2w4alR4NjQrYXFaUTBNc0N1MzBrQWFGelZRTVV1MHI5Z1hncjU1cy9DVlZvaG1FQgoxNjNySkNTVkhCRFRacUdmb1E9PQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCgotLS0tLUJFR0lOIENFUlRJRklDQVRFLS0tLS0KTUlJRWtqQ0NBM3FnQXdJQkFnSVFDZ0ZCUWdBQUFWT0ZjMm9MaGV5bkNEQU5CZ2txaGtpRzl3MEJBUXNGQURBLwpNU1F3SWdZRFZRUUtFeHRFYVdkcGRHRnNJRk5wWjI1aGRIVnlaU0JVY25WemRDQkRieTR4RnpBVkJnTlZCQU1UCkRrUlRWQ0JTYjI5MElFTkJJRmd6TUI0WERURTJNRE14TnpFMk5EQTBObG9YRFRJeE1ETXhOekUyTkRBME5sb3cKU2pFTE1Ba0dBMVVFQmhNQ1ZWTXhGakFVQmdOVkJBb1REVXhsZENkeklFVnVZM0o1Y0hReEl6QWhCZ05WQkFNVApHa3hsZENkeklFVnVZM0o1Y0hRZ1FYVjBhRzl5YVhSNUlGZ3pNSUlCSWpBTkJna3Foa2lHOXcwQkFRRUZBQU9DCkFROEFNSUlCQ2dLQ0FRRUFuTk1NOEZybExrZTNjbDAzZzdOb1l6RHExelVtR1NYaHZiNDE4WENTTDdlNFMwRUYKcTZtZU5RaFk3TEVxeEdpSEM2UGpkZVRtODZkaWNicDVnV0FmMTVHYW4vUFFlR2R4eUdrT2xaSFAvdWFaNldBOApTTXgreWsxM0VpU2RSeHRhNjduc0hqY0FISnlzZTZjRjZzNUs2NzFCNVRhWXVjdjliVHlXYU44aktrS1FESVowClo4aC9wWnE0VW1FVUV6OWw2WUtIeTl2NkRsYjJob256aFQrWGhxK3czQnJ2YXcyVkZuM0VLNkJsc3BrRU5uV0EKYTZ4Szh4dVFTWGd2b3BaUEtpQWxLUVRHZE1EUU1jMlBNVGlWRnJxb003aEQ4YkVmd3pCL29ua3hFejB0TnZqagovUEl6YXJrNU1jV3Z4STBOSFdRV002cjZoQ20yMUF2QTJIM0Rrd0lEQVFBQm80SUJmVENDQVhrd0VnWURWUjBUCkFRSC9CQWd3QmdFQi93SUJBREFPQmdOVkhROEJBZjhFQkFNQ0FZWXdmd1lJS3dZQkJRVUhBUUVFY3pCeE1ESUcKQ0NzR0FRVUZCekFCaGlab2RIUndPaTh2YVhOeVp5NTBjblZ6ZEdsa0xtOWpjM0F1YVdSbGJuUnlkWE4wTG1OdgpiVEE3QmdnckJnRUZCUWN3QW9ZdmFIUjBjRG92TDJGd2NITXVhV1JsYm5SeWRYTjBMbU52YlM5eWIyOTBjeTlrCmMzUnliMjkwWTJGNE15NXdOMk13SHdZRFZSMGpCQmd3Rm9BVXhLZXhwSHNzY2ZyYjRVdVFkZi9FRldDRmlSQXcKVkFZRFZSMGdCRTB3U3pBSUJnWm5nUXdCQWdFd1B3WUxLd1lCQkFHQzN4TUJBUUV3TURBdUJnZ3JCZ0VGQlFjQwpBUllpYUhSMGNEb3ZMMk53Y3k1eWIyOTBMWGd4TG14bGRITmxibU55ZVhCMExtOXlaekE4QmdOVkhSOEVOVEF6Ck1ER2dMNkF0aGl0b2RIUndPaTh2WTNKc0xtbGtaVzUwY25WemRDNWpiMjB2UkZOVVVrOVBWRU5CV0RORFVrd3UKWTNKc01CMEdBMVVkRGdRV0JCU29TbXBqQkgzZHV1YlJPYmVtUldYdjg2anNvVEFOQmdrcWhraUc5dzBCQVFzRgpBQU9DQVFFQTNUUFhFZk5qV0RqZEdCWDdDVlcrZGxhNWNFaWxhVWNuZThJa0NKTHhXaDlLRWlrM0pIUlJIR0pvCnVNMlZjR2ZsOTZTOFRpaFJ6WnZvcm9lZDZ0aTZXcUVCbXR6dzNXb2RhdGcrVnlPZXBoNEVZcHIvMXdYS3R4OC8Kd0FwSXZKU3d0bVZpNE1GVTVhTXFyU0RFNmVhNzNNajJ0Y015bzVqTWQ2am1lV1VISzhzby9qb1dVb0hPVWd3dQpYNFBvMVFZeiszZHN6a0RxTXA0ZmtseEJ3WFJzVzEwS1h6UE1UWitzT1BBdmV5eGluZG1qa1c4bEd5K1FzUmxHClBmWitHNlo2aDdtamVtMFkraVdsa1ljVjRQSVdMMWl3Qmk4c2FDYkdTNWpOMnA4TStYK1E3VU5LRWtST2IzTjYKS09xa3FtNTdUSDJIM2VESkFrU25oNi9ETkZ1MFFnPT0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
+      tls.key: LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlFcFFJQkFBS0NBUUVBdjVFZGdIZk9MNEhqTTcvMWQvbzF6VEdpdjZQVG5UMUR1NEhlSzQ5aVpWWFVoWXRJCmZlS1MzWFpuZWREaTBoWmVVUEplRDYzK28vR0hyUUErVkFqdGZxRFU0bkVXb3NaWDRKZ2Z4a2YxdWJuRzNMV1YKM3E5dFM0QTA3enh0UWNqQkZXdXFkNVJaZFpoa3lxOXdnZUozMkpxT1MyWnZqUHFlc1l4eXFuMlRVVlAvY3gzagozV0tVNFVxRjlnemVhcHF0anVDTnltcE1uc3VUUzlYTGZOUnhqaGdpYmlsb25UTHlmZURyY05kOXRlaTRSZWhSCnppenM0MlFvbEV4czd0TG9tU2h1WGNTU2EzNFdUYU9FUDBsemx1aStJckRPMEtrdlF6U2NRL3dOb3gzbW5OYjUKQ3VOMFpRdktGV21iaDFGcmNQZEFwN2g4K3Ryb3M3UW1HNit5ZndJREFRQUJBb0lCQUJGUGFaME1ObU53bHprNwo1VkI4R1pSN0lidXpjQkhMVVcyR0pLOUcrNXN3a0Uybzhsbjl1VXV0d1ZmdW1qQmx1UXdUZXBCc0pwQmw2TjZuCklQcXkrOUx2Y1kwc3J1RHlqMHBLTk1UVUI4NUtqVCt3WU9TSWNaWGE5ZTJRUmtjbGZ0MFNwNHE2cXdMSFRJUk0KS2h4eWZHWGtRV3RxekRXdkI5di9WdlUwOTdUbmZDRlBlSm9xZWIxSGV1dkozYjNaVkZQZU1ZY293WE94YmZVNwoyTE5MczVKdUV5Z25lNFlxNkdnbzQxVGtBZWFNT3ZHbHNjaEpWMlpKekNIZks3S0VMYks3bGpkQnl5VS9ZTVBpCnR0MGw5eUIyUVhhbWtFQjBzU2JZS2cwNHAwNDZRaGl2NEx4RC9QTE9rb0lEYWNRNmZUT2gxMTYzbVZ2Qks4STAKbUd4cVYwRUNnWUVBNk5LZFhQMlp4QkowVGJSY09vdUFzdlFRRjJ2WVFEQS9uRmQwdktFQnVHU0FpVHd1dFlDaApsQlRRWVY2b1hmQ1pZLzJlc3pGWHNrVDQwVmdmSFhhSTBvb2t2aDE3TWw0dTZZM0tWNnZPcG1tMzJSYXN2MlY0CjVMbmNMN2JkdG05Y0hrSUhoUHRIUFF1VTd6SXRkUUJPVWVSWjlnT2VONGhHdG1UOGtPa0Y4UzhDZ1lFQTBxTWMKN28xWUZGZDVHTHMzQTluMFJxS296ZnFHOUtMOCtycmt2RDRia2J0MS9BR0pHOU9VU0pPMzhVK0N4OUhYTFBNWgpmTThFR2phZWF6aVRiMkxhZGVaL01lYUxKdHZWUlAxQmFNR2Nya3IxZ0hVN3N4L3VGUFA2RDNhYjhMWlRpUjBVCnV3bEVmdno1eCsyYy9mNlNURFUvV3dzMFNxbTNPNVhiTFE5RTM3RUNnWUVBcTh3VjBETlZqbWZycUJicFkwM2oKRnFtZlloanpCbEpUN2VKZXduMndEa2NpemFFNStqWkRoRWhqaHlYWTZSQ0xyMHZMR2dEVDdEaVd2YXJmc3RidgptU1BVZnZDMEluTjYvRjNqTEJRYnRaSVcxanEwRjdzaG5PMUVlM1RkWHl3RzlsRFV5Wnk5Y1Y4bGMrYzd3YlVMCkZjU0JXVlpNSGtBUnBhOFk2emozYUlNQ2dZRUFwRW1zeXpOYk82SnVSU2ZnWlJTZVBtbW9GK0FMV3N1MVhTcGcKTmFLTGhrTWNadzRianFTYngyL1B6RnNqdWc2bE1kMzZSeXFBSEtIMU5kUE95dFhqWm9uOU0wS0p6aWt3VXJybApSWHVkWlNQNkQ5TmdXUG5TakcwdTROaTJFQzFsUWxCNFZ0bUhuelJZN2VNYXk5Qys4c21sUExHa2U0ZWI3dEdYClBiSG5Ha0VDZ1lFQTB3Sm1KZ0VnRklYRDAvWFNvSzhiMktJam5oaVgzVGRHemJJOENWZW1zTVVrdGFkYSsydnkKdDlNS3dKMVpvWnBxK2QzT1c5Wm1JWGw3L1FjaFFUOEl2OW16UjJPcTFKYVdjczk5QmQ3VlBDeWVIOWlvUlRaNQpNUElaWTNCTnVoejBMbWVTU2doUm5iUGh5YzRucXUzdVAvSElMVjRmZlVNYjB6d3lwVWFoTlRZPQotLS0tLUVORCBSU0EgUFJJVkFURSBLRVktLS0tLQo=
+    type: kubernetes.io/tls
 
-- kind: Service
-  apiVersion: v1
-  metadata:
-    namespace: registry
-    name: registry-web
-  spec:
-    ports:
-      - protocol: TCP
-        port: 8080
-    selector:
-      app: registry-web
+  - apiVersion: extensions/v1beta1
+    kind: Ingress
+    metadata:
+      namespace: registry
+      name: registry
+      annotations:
+        kubernetes.io/ingress.class: nginx
+        nginx.ingress.kubernetes.io/proxy-body-size: "2g"
+    spec:
+      tls:
+        - hosts:
+            - reg.int.parcelfuture.com
+          secretName: intparcelfuturecom
+      rules:
+        - host: reg.int.parcelfuture.com
+          http:
+            paths:
+              - path: /
+                backend:
+                  serviceName: registry
+                  servicePort: 5000
 
-- apiVersion: extensions/v1beta1
-  kind: Ingress
-  metadata:
-    namespace: registry
-    name: registry-web
-    annotations:
-      kubernetes.io/ingress.class: nginx
-      nginx.ingress.kubernetes.io/proxy-body-size: "2g"
-  spec:
-    tls:
-    - hosts:
-      - regweb.int.parcelfuture.com
-      secretName: intparcelfuturecom
-    rules:
-      - host: regweb.int.parcelfuture.com
-        http:
-          paths:
-          - path: /
-            backend:
-              serviceName: registry-web
-              servicePort: 8080
+  - apiVersion: apps/v1beta1
+    kind: Deployment
+    metadata:
+      namespace: registry
+      name: registry-web
+    spec:
+      replicas: 1
+      template:
+        metadata:
+          labels:
+            app: registry-web
+        spec:
+          containers:
+            - name: registry-web
+              image: hyper/docker-registry-web
+              ports:
+                - containerPort: 8080
+              env:
+                - name: REGISTRY_URL
+                  value: http://registry:5000/v2
+                - name: REGISTRY_NAME
+                  value: reg.int.parcelfuture.com
+              # - name: REGISTRY_BASIC_AUTH
+              #   value: YWRtaW46Y2hhbmdlbWU=
+
+  - kind: Service
+    apiVersion: v1
+    metadata:
+      namespace: registry
+      name: registry-web
+    spec:
+      ports:
+        - protocol: TCP
+          port: 8080
+      selector:
+        app: registry-web
+
+  - apiVersion: extensions/v1beta1
+    kind: Ingress
+    metadata:
+      namespace: registry
+      name: registry-web
+      annotations:
+        kubernetes.io/ingress.class: nginx
+        nginx.ingress.kubernetes.io/proxy-body-size: "2g"
+    spec:
+      tls:
+        - hosts:
+            - regweb.int.parcelfuture.com
+          secretName: intparcelfuturecom
+      rules:
+        - host: regweb.int.parcelfuture.com
+          http:
+            paths:
+              - path: /
+                backend:
+                  serviceName: registry-web
+                  servicePort: 8080
