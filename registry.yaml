@@ -64,6 +64,34 @@ items:
             enabled: true
             interval: 10s
             threshold: 3
+      config-web.yml: |
+        # Default values for yml config
+        registry:
+          # Docker registry url
+          url: 'http://localhost:5000/v2'
+          # web registry context path
+          # empty string for root context, /app to make web registry accessible on http://host/app
+          context_path: ''
+          # Trust any SSL certificate when connecting to registry
+          trust_any_ssl: false
+          #  base64 encoded token for basic authentication
+          basic_auth: ''
+          # To allow image delete, should be false
+          readonly: false
+          # Docker registry fqdn
+          name: 'localhost:5000'
+          # Authentication settings
+          auth:
+            # Enable authentication
+            enabled: false
+            # Allow registry anonymous access
+            # allow_anonymous: true # not implemented
+            # Token issuer
+            # should equals to auth.token.issuer of docker registry
+            issuer: 'test-issuer'
+            # Private key for token signing
+            # certificate used on auth.token.rootcertbundle should signed by this key
+            key: /config/auth.key
   - apiVersion: apps/v1beta1
     kind: Deployment
     metadata:
@@ -166,7 +194,17 @@ items:
                   value: reg.int.parcelfuture.com
               # - name: REGISTRY_BASIC_AUTH
               #   value: YWRtaW46Y2hhbmdlbWU=
-
+              volumeMounts:
+                - name: registryconfig
+                  mountPath: /conf/config.yml
+                  subPath: config-web.yml
+          volumes:
+            - name: registryconfig
+              configMap:
+                name: registryconfig
+                items:
+                  - key: config-web.yml
+                    path: config-web.yml
   - kind: Service
     apiVersion: v1
     metadata:
