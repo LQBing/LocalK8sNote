@@ -53,8 +53,8 @@ items:
             blobdescriptor: inmemory
           filesystem:
             rootdirectory: /var/lib/registry
-          delete:
-            enable: treu
+        delete:
+          enable: true
         http:
           addr: :5000
           headers:
@@ -115,6 +115,9 @@ items:
                 - name: registryconfig
                   mountPath: /etc/docker/registry/config.yml
                   subPath: config.yml
+              env:
+                - name: REGISTRY_STORAGE_DELETE_ENABLED
+                  value: "true"
           volumes:
             - name: registry
               persistentVolumeClaim:
