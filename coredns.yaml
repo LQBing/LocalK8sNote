@@ -1,0 +1,23 @@
+
+apiVersion: v1
+data:
+  Corefile: |
+    .:53 {
+        errors
+        health
+        kubernetes cluster.local in-addr.arpa ip6.arpa {
+           pods insecure
+           upstream 116.228.111.118 180.168.255.18 8.8.8.8 114.114.114.114
+           fallthrough in-addr.arpa ip6.arpa
+        }
+        prometheus :9153
+        forward . 116.228.111.118 180.168.255.18 8.8.8.8 114.114.114.114 # /etc/resolv.conf
+        cache 30
+        loop
+        reload
+        loadbalance
+    }
+kind: ConfigMap
+metadata:
+  name: coredns
+  namespace: kube-system
